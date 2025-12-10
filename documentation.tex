@@ -1,0 +1,73 @@
+\section{Documentation}
+As discussed above, we use the package \verb|NCAlgebra|. 
+We also use the convention that if $p=a_1*\cdots*a_m$ and $q=b_1*\cdots*b_n$ are two 
+parallel paths from vertex $i$ to vertex $j$, then we represent the multiple 
+$\alpha(p,q)\in\Hom_{\GPA(\Gamma)}(m\to n)$ of basis vector $(p,q)$ by the Mathematica \verb|Association|
+\begin{verbatim}
+    <| scalar->alpha, p-> a1**...**am, q->b1**...**bn, s->i, t->j |>
+\end{verbatim}
+and consider a list of such associations to represent a linear combination of basis vectors. 
+Note that \verb|**| denotes noncommutative product. 
+Some of the following functions require that linear combinations of basis vectors exhibit certain properties, 
+such as respecting the order of a certain basis. 
+When this is the case, an appropriate \verb|Assert| statement has been inserted. 
+
+
+\subsection{Dagger, RealDagger, and SymDagger}
+The graph planar algebra is given a $\dagger$ structure by defining the dagger 
+$\left( \sum_i \alpha_i (p_i,q_i) \right)^\dagger = \sum_i \ol{\alpha_i} (q_i,p_i)$. 
+It is important to note that this operation does not change the source and 
+target of the paths $p_i$ and $q_i$. 
+This operation is captured in the function \verb|Dagger|. 
+When coefficients are known (or on an ad hoc basis assumed) to be real, one may use 
+the \verb|RealDagger| function which avoids the computational penalty of performing 
+computations on elements of the form \verb|Conjugate[x]|.
+
+
+\subsection{Compose}
+Composing an element of $(p',q')\in\Hom_{\GPA(\Gamma)}(m\to n)$ with an element of $(p,q)\in\Hom_{\GPA(\Gamma)}(l\to m)$ is defined on basis elements by 
+\[
+(p',q')\circ(p,q) = \delta_{q',p}\cdot(p',q)
+\]
+This basis-vector-to-basis-vector composition is reflected in the function \verb|LilCompose|. Composing a pair of linear combinations (i.e. lists) of basis vectors is taken care of by \verb|BigCompose|. The function \verb|Compose| handles arbitrary compositions of the form $f_1\circ \cdots\circ f_r$.
+
+
+\subsection{Tensor}
+
+
+\subsection{Cup, Cap, and Stick}
+% \texttt{GenerateCup} and \texttt{GenerateStick} functions explanation
+The rigidity of the embedding $\PP_{X;\CC}\to\GPA(\Gamma)$ implies that the Cup and Cap maps are sent to corresponding rigidity maps in $\GPA(\Gamma)$. 
+As defined in \cite{Cain_Dan}, we have
+\begin{equation}
+    \ev = \sum_{(e,f)} \sqrt{ \frac{\lambda_{s(f)}}{\lambda_{s(e)}} } ((e,f), s(e))
+\end{equation}
+where the sum is across all pairs $(e,f)$ of antiparallel edges in $\Gamma$, 
+and where $\lambda$ is the Frobenius eigenvector of $\Gamma$. 
+For instance, when 
+\[
+    \Gamma = \begin{bmatrix} 0&1&1&1\\ 1&1&1&1\\ 1&1&1&1\\ 1&1&1&1 \end{bmatrix}
+\] 
+we have 
+\[ 
+    \lambda = \begin{bmatrix} \frac{1}{2}(-3+\sqrt{21}) \\ 1\\ 1\\ 1\\ \end{bmatrix}
+\]
+and corresponding positive eigenvalue $\frac{1}{2}(3+\sqrt{21})$
+
+\subsection{Comp, Tens}
+
+
+\subsection{InTermsOf}
+
+
+\subsection{GetHomBasisList}
+See Proposition~\ref{prop:SAM_powers}.
+
+
+
+\subsection{Respecting an Ordered Basis and Equating}
+
+
+
+% EOS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 

@@ -1,0 +1,182 @@
+\section{Computational Algebraic Number Theory}
+
+% Explain the number fields.
+
+% How to use polynomials.
+
+% \[
+%     \xymatrix@R=40pt@C=65pt{
+%     xx \ar[r]^{ff} \ar[drr]_{ff} & yy \ar[r]^{ff} \ar[d]^{K} & zz \\
+%     & ww \ar[ur]_{ff} & \\
+%     }
+% \]
+
+
+
+Here we explain some of the ways we do computational algebraic number theory (CANT), both explicity and implicitly.
+
+
+\subsection{CANT setup}
+In the course of finding the projection coefficients and the $\Z_n$-like extension structure constants at level 4, 
+it was necessary to work over the field 
+\[
+    K\coloneq \Q(q, a_5, b_5, b_6, b_7, c_1),
+\]
+where we have
+\[
+q = e^{2\pi i/48},\quad a_5 = \frac{2}{2},\quad b_5 = \sqrt{\cdots},\quad b_6 = \sqrt{\cdots},\quad b_7 = \sqrt{\cdots}, \quad c_1 = .
+\]
+While in theory we should be able to accomplish this directly by using Mathematica's built-in support for algebraic numbers with 
+\[
+    \verb|ToNumberField[{q, a5, b5, b6, b7, c1}]|,
+\]
+we found this to be too slow\footnote{
+    We naively attempted this direct approach and terminated the computation after about three weeks.}.
+Instead, something more clever is required.
+We exploit the isomorphism $L(\gamma) \cong L[x]/(\min_{\gamma}(x))$.
+Practically, this involves combining Mathematica's lighting-fast (for low degree) \verb|AlgebraicNumber| 
+operations with its reasonably quick \verb|PolynomialMod| function.
+
+The first useful observation to make is that we have the following field diagram:
+\begin{center}
+\[
+    \xymatrix@R=40pt@C=35pt{
+    \F(q) & \F(a_5) & \F(b_5) & \F(b_6) & \F(b_7) & \F(c_1) &  \\
+     &  &  \F \coloneq \Q(g) \ar@{-}[ull]^{4} \ar@{-}[ul]^{4} \ar@{-}[u]^{2} \ar@{-}[ur]^{2} \ar@{-}[urr]^{2} \ar@{-}[urrr]^{2}  & &  &  &  \\
+     &  &  & \Q \ar@{-}[ul]^{4} &  &  &  \\
+    }
+\]
+\end{center}
+where $g = \sqrt{2+\sqrt{3}}$\footnote{
+    Note that $\Q(g) = \Q(\sqrt{2}, \sqrt{3})$. 
+    We use $g$ as a primitive element to unlock algebraic number functionalities.
+    }.
+This observation allows us to reduce high-order expressions in $\Q(q, a_5, b_5, b_6, b_7, l)$ using the minimal polynomials for 
+$q$, $a_5$, $b_5$, $b_6$, $b_7$, and $c_1$ to lower-order expressions.
+We gain additional speed by working over $\F$ instead of $\Q$.
+The minimal polynomials for $q$, $a_5$, $b_5$, $b_6$, $b_7$, and $c_1$ over $\F$ are:
+\begin{equation*}
+    p_{q}(\eta) = \eta^4 - g\eta^2 + 1
+\end{equation*}
+\begin{equation*}
+    p_{a_5}(\alpha) = \alpha^4 +(6g-2g^3)\alpha^2 + (5 -8g -1g^2 +2g^3)
+\end{equation*}
+\begin{equation*}
+    p_{b_5}(\beta_1) = \beta_1^2 + (1 -1g )
+\end{equation*}
+\begin{equation*}
+    p_{b_6}(\beta_2) = \beta_2^2 + (2 g -g^2 ) 
+\end{equation*}
+\begin{equation*}
+    p_{b_7}(\beta_3) = \beta_3^2 - (2 -8g +2g^3)
+\end{equation*}
+\begin{equation*}
+    p_{c_1}(\lambda) = \lambda^2 - (4 +10g +2g^3)
+\end{equation*}
+where we represent, e.g., the algebraic number $5 -8g -1g^2 +2g^3 \in\F$ by
+\[
+    \verb|AlgebraicNumber[Root[1-4#^2+#^4&,4], {5,-8,-1,2}]|
+\] 
+
+
+Thus we are able, without knowing its precise value, to deduce that, for example,
+\[
+   \frac{a_5 q}{(1+q^2)b_5} = a_5 b_5 q (g_1 + g_2 q^2)
+\]
+where 
+\[
+    g_1 = -1-g+g^2, \quad\text{and}\quad g_2 = \frac{1}{2}(1 + g + g^2 + g^3)
+\]
+by reducing modulo the minimal polynomials.
+
+We implement this logic in Mathematica by giving $g$ as 
+\[
+   \verb|AlgebraicNumber[Root[1-4#^2+#^4&,4], {0, 1, 0, 0}]| 
+\]
+and reducing the expression $\frac{\alpha \eta}{(1+\eta^2)\beta_1}$ modulo the minimal polynomials;
+reducing the polynomials we encoutner modulo quadratic and quartic 
+minimal polynomials with \verb|AlgebraicNumber| coefficients is quite fast.
+
+
+
+
+\subsection{CANT for embeddings}
+This approach derives efficiency in the two main tasks we have to accomplish: 
+finding GPA embeddings, and validating equations among generators.
+
+The process of finding a GPA embedding is a dance back and forth between approximations and exact solutions,
+with a heavy theme of making strong assumptions.
+Any assumption we make, however, will eventually be verified precisely.
+Many times we initially find a numerical approximation to an embedding, and use this to inform our guesses for exact solutions.
+A close approximation of a solution gives strong hypotheses for questions of the following type:
+\begin{itemize}
+    \item Which coordinates are zero?
+    \item Which pairs of coordinates are the same?
+    \item Which pairs of coordinates are conjugate?
+    \item Which coordniates have good immediate guesses? (For example, $-0.4999 + 0.866025 i$ is likely $e^{2\pi i/3}$.)
+\end{itemize}
+
+
+Suppose we have obtained an embedding of $\GG_2(q)$:
+\[
+    F\left( \skein{/skein_figs/trivalent}{0.075} \right) 
+    = \sum_{i=1}^{N} \alpha_i (p_i,q_i) \in \Hom_{\GPA(\Gamma)}(2\to 1).
+\]
+and we are searching for the image of the second generator for $\DD_4$: 
+$F\left( \skein{/skein_figs/Pg}{0.075} \right)$.
+In practice we find that for each $i$, $\alpha_i\in \R$.
+Furthermore, the set of distinct magnitudes,
+\[
+    \{ |\alpha_i| \}
+\]
+is quite small.
+At level 4, we have only 9 distinct magnitudes of trivalent coordinates, despite $\Hom_{\GPA(\Gamma)}(2\to 1)$ being 88.
+Upon analysis of these nine magnitudes, we find that each lies within the number field generated by one of four of them.
+These generators are
+\[
+    a_5 = \frac{2}{2},\quad b_5 = \sqrt{\cdots},\quad b_6 = \sqrt{\cdots},\quad\text{and}\quad b_7 = \sqrt{\cdots}.
+\]
+We therefore decide that we will work, in practice, with symbolic variables $\alpha$, $\beta_1$, $\beta_2$, and $\beta_3$,
+and reduce any expressions we encounter modulo the minimal polynomials for the generators 
+{\it in the variables $\alpha$, $\beta_1$, $\beta_2$, and $\beta_3$}.
+Now, in order to express summands of the defining relations of $\DD_4$ such as 
+\[
+    \skein{/skein_figs/trigon_singly}{0.1},
+\]
+we need access to rigidity maps 
+\[
+    \skein{/skein_figs/cap}{0.075} \quad\text{and}\quad \skein{/skein_figs/cup}{0.075}.
+\]
+By definition of $\GPA(\Gamma)$, we know the coordinates of these maps.
+In order to apply the same CANT techniques, we use symbolic variables for these coordinates: 
+$\lambda$ and $\frac{1}{\lambda} = \frac{\lambda}{4 +10g +2g^3}$.
+In this way $\lambda$ plays the role of $c_1$.
+The final symbol we need is $\eta$, which will play the role of $q$.
+
+Now suppose we find a numerical approximation for the image of the projection in $\GPA(\Gamma)$.
+We may arrive at this point by solving a large linear system (i.e., the half-braid relation),
+by applying optimization to some nonlinear relations, or some other means.
+We can use this approximation to solve, for example, the linear system
+\[
+    \skein{/skein_figs/trigon_singly}{0.1} 
+    = t_1 \skein{/skein_figs/trivalent}{0.15} + t_2 \skein{/skein_figs/rightUp}{0.1}
+\]
+to find guesses for the values of $t_1$ and $t_2$.
+Once we have our {\it guesses} for $t_1$ and $t_2$, we may turn this into an {\it assumption} by 
+imposing the exact, symbolic relationship and returning equations which are linear in the 
+coordinates of $F\left( \skein{/skein_figs/Pg}{0.075} \right)$.
+
+
+
+
+
+\subsection{CANT for equation validation}
+Suppose we have an equation in the two subcategory generators: trivalent and projection (and cups, caps, and sticks).
+With symbolic GPA embeddings of the generators as above, this amounts to a linear combination of vectors,
+where the vectors have symbolic polynomial entries and are scaled by symbolic polynomials.
+In order to prove these equations are true, we can either specialize the symbols to their numeric values, 
+or show that the equations hold purely symbolically.
+Usually, we take some middle ground.
+Note that the only non-real generator of $K$ is $q$, whose part is played by $\eta$.
+Thus we individually inspect the coefficients of $\eta$ and prove they are equal when specialized.
+This is sufficient to prove a symbolic equation holds.

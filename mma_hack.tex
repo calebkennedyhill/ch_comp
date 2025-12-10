@@ -1,0 +1,163 @@
+\section{Mathematica hacking}
+% This short note is intended to serve as a guide to future students who 
+% wish to use Mathematica outside of the usual, intended uses. 
+% Because of my background outside of the usual path into programming, 
+% I've found some unique ways to solve problems. 
+% With the guidance of my doctoral advisor Cain Edie-Michell, I've been fortunate 
+% enough to learn a few interesting things about Mathematica.
+
+A first reference for Mathematica programming is \cite{mathematica_programming}. 
+For the those with, for instance, C-style programming background, Mathematica will seem strange. 
+There are ways of doing things that are ``correct'' and ``incorrect.'' 
+One should start recognizing this pattern from StackExchange posts. 
+The questioner will show their initial attempt using, e.g., a \verb|For[]| statement, 
+and someone more savvy will respond with a \verb|Table[]| statement. 
+This comes down to Mathematica's preference for functional programming
+
+
+\subsection{Functional programming basics}
+While calling Mathematica ``functional'' might technically be incorrect, 
+the mathematician learning to code in the language should keep in mind that Mathematica is what might be 
+described as {\it function-centric}. 
+That is, the basic objects, data types, etc. can be represented as function values. 
+For example, one might want to represent a list of elements, say \verb|{1,2,3}|. 
+In Mathematica, one may type this in two equivalwent ways: 
+\verb|{1,2,3}| or \verb|List[1,2,3]|. 
+Thus a list can be thought of as the output of the function \verb|List[]| on any finite number of inputs. 
+Similarly one may represent \verb|a+b| equivalently by \verb|Plus[a,b]|. 
+A debugging tool the new Mathematica programmer ought to keep in mind is use of the \verb|Head[]| function. 
+This function answers the question, ``This object may be represented as the output of which function?'' 
+For example, \verb|Head[1]| returns \verb|Integer|, \verb|Head[1/7]| returns \verb|Rational|, 
+\verb|Head[a+b]| returns \verb|Plus|, and \verb|Head[{1,2,3}]| returns \verb|List|. 
+In the sequel, for example, we use the \verb|Head| function to parse products by inspecting for type 
+\verb|NCMult| (product of noncommutative factors) or \verb|Integer|. 
+As a final example if the function-centric nature of Mathematica, we note that we can extract elements 
+of a list (or other \verb|Head| types) using the \verb|Part[]| function. 
+That is, in order to obtain the second element of the list \verb|someList| we may equivalently write 
+\verb|Part[someList,2]| or \verb|someList[[2]]|.
+
+A more typical example of how Mathematica's function-centric nature manifests is looping.
+The programmer familiar with, for instance, C++ might default to using a \verb|For[]| which involves
+manually specifying the iterator and how it iterates.
+The ``correct'' way to accomplish the same task in Mathematica is usually to use a \verb|Table[]| statement.
+Using \verb|Table[]| takes the work of specifying iteration out of the programmer's hands.
+It has the additional benefit of giving the ability to swap \verb|Table[]| for \verb|ParallelTable[]| 
+where applicable.
+The \verb|Table[]| function also has a built in way to iterate over multiple dimensions, streamlining workflow and readability. 
+
+
+
+\subsection{Symbols}\label{subsec:symbols}
+
+Functional or function-centric programming streamlines some aspects of the programmer's task when using Mathematica.
+The platform's real power comes from its ability to do symbolic manipulations.
+Mathematica's symbolic abilities make it a natural companion to, and really an extension of, the mathematician's blackboard.
+Powerful symbolic manipulation has consequences for both algorithmic problems (SAMs) and numerical problems (equation solving).
+We discuss examples of both, beginning with the algorithmic case.
+
+
+
+\subsubsection{SAMs}
+
+\begin{figure}
+    \begin{tikzpicture}[scale=3]
+        \node[shape=circle,draw=black] (A) at (0,0) {1};
+        \node[shape=circle,draw=black] (B) at (1,0) {2};
+
+        \path (B) edge [loop, in=45, out=-45, looseness=20] node {} (B);
+        \path [-] (A) edge node {} (B);
+        
+    \end{tikzpicture}
+    \caption{The tadpole graph.}
+    \label{fig:tadpole}
+\end{figure}
+
+We begin by discussing where Mathematica's symbolic power helps us solve an algorithmic problem.
+Recall from the definition of $\GPA(\Gamma)$ that the defining basis for 
+\[
+    \Hom_{\GPA(\Gamma)}(m\to n)
+\]
+is given by pairs $(p,q)$ of parallel paths of length $m$ and $n$, respectively.
+In this definition the possibility of double edges requires that we take an edge-centric view of paths,
+not a vertex-centric one.
+That is, there may be two distinct edges 
+\[
+    f,f': v\to w
+\]
+which, if taking a vertex centric view would both be specified by the pair $(v,w)$ of vertices.
+However, we must distinguish these paths.
+The solution is to use a {\it symbolic adjacency matrix (SAM)} \cite{algos_graph_circuits}. 
+The graphs we use are not sparse, so even a dogmatic computer scientist 
+would concede that an adjacency matrix is warranted.
+ 
+Second, it was crucial to the problem to keep track of which direction a path traversed an edge in. 
+The SAM accomplished this by its lack of symmetry; every ``half'' of every edge of the graph was given a unique symbol. 
+That is, the unoriented edge $u\xleftrightarrow{} v$ is split into two antiparallel edges $u\to v$ and $v\to u$. 
+
+\begin{definition}[Symbolic Adjacency Matrix]
+    Let $\Gamma$ be a fintie graph.
+    If $\Gamma$ is undirected, split every edge of $\Gamma$ into a pair of antiparallel directed edges.
+    Label every edge $e:v_i\to v_j$ of $\Gamma$ by a noncommutative variable $a_{e}$.
+    The {\bf symbolic adjacency matrix} (SAM) of $\Gamma$ is the matrix $S_\Gamma$ whose $(i,j)$ entry is 
+    \[
+        \sum_{e:v_i \to v_j} a_e
+    \]
+\end{definition}
+
+
+Take as an example the tadpole graph in Figure~\ref{fig:tadpole}. 
+Its symbolic adjacency matrix is
+\[
+\begin{bmatrix}
+0 & a \\
+b & c \\
+\end{bmatrix}
+\]
+where $a$, $b$, and $c$ are noncommutative symbolic variables. 
+Recall that the usual adjacenecy matrix (whose entries are nonnegative integers counting edges between vertices) can be raised to the $n$-th power to count the number of paths of length $n$ between pairs of vertices. 
+In a similar way, the degree-$n$ symbolic polynomials which are the entries in the $n$-th power of the SAM explicitly give the paths between vertices. 
+For instance, the $(2,2)$ entry in the square of the above SAM is $c^2+ba$. 
+This tells us that the two loops at vertex 2 are\footnote{Paths are read left to right.}
+\begin{align*}
+    c^2 & = 2\to2\to2 \\
+    ba & = 2\to1\to2 
+\end{align*}
+For small graphs, this offers the mathematical programmer a more intuitive way to compute loops 
+in Mathematica than the usual BFS or DFS. 
+We pair paths in the following manner.
+
+% Let $\boxtimes$ denote the pointwise distributive pairing of matrices. 
+\begin{definition}
+    Let $A$ and $B$ be $m\times n$ matrices with noncommutative polynomial entries
+    \[
+        p_{i,j;A} = , \quad\text{and}\quad p_{i,j;B} = 
+    \]
+    Define $A\boxtimes B$ to be the $m\times n$ matrix whose $(i,j)$ entry is the formal sum
+    \[
+        \sum_{} (..., ...)
+    \]
+    where 
+\end{definition}
+
+
+The following Proposition is a straightforward generalization of the results of \cite{algos_graph_circuits} with an application to the context of graph planar algebras.
+
+\begin{proposition}\label{prop:SAM_powers}
+Let $A$ be the SAM for the graph $\Gamma$. 
+Then the terms of the nonzero entries of $A^m\boxtimes A^n$ form a basis for $Hom_{\GPA(\Gamma)}(m\to n)$.
+\end{proposition}
+
+Proposition~\ref{prop:SAM_powers} is the theoretic backing for the function \verb|GetHomBasisList[]| discussed below.
+
+
+
+
+
+\subsubsection{Symbolic Equation Solving}
+My work also requires finding exact solutions to large systems of equations. 
+Despite the low order of these equations, solving them can require large amounts of 
+computational resources due to their symbolic nature.
+
+
+
+
