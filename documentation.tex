@@ -23,16 +23,65 @@ When coefficients are known (or on an ad hoc basis assumed) to be real, one may 
 the \verb|RealDagger| function which avoids the computational penalty of performing 
 computations on elements of the form \verb|Conjugate[x]|.
 
+When using the CANT framework, we need a suitable way to compute complex conjugates for the dagger operation.
+This is accomplished on a case-by-case basis.
+When $q$ is a root of unity this is fairly easy.
+The symbolic variable $\eta$ plays the role of $q$, and we impose the relation defined by 
+the minimal polynomial on $\eta$: 
+\begin{equation}\label{eq:eta-min}
+    \eta^4 = g\eta^2 - 1.
+\end{equation}
+Thus if $q$ is, in the case of $G_2$ at level 4, a $48$-th root of unity, we know $\ol{q}=q^{47}$.
+To express $\ol{q}$ symbolically with $\eta$, then, we merely reduce $\eta^{47}$ according to Equation~\ref{eq:eta-min}.
+
+We may observe these three distinct ways of computing daggers:
+
+\begin{tabular}{c|c}
+    Function & Scalar computation \\ \hline
+    \verb|Dagger| & \verb|"scalar" -> Conjugate[inputList[[kindex]]["scalar"]]| \\
+    \verb|RealDagger| & \verb|"scalar" -> inputList[[kindex]]["scalar"]| \\
+    \verb|SymDagger| & \verb|"scalar" ->  symConj[inputList[[kindex]]["scalar"]]| \\
+\end{tabular}
+
+In the above, \verb|SymConj| is defined by 
+% \noindent\makebox[\textwidth]{
+\begin{verbatim}
+symConj[expr_] := ApplyRelns[expr /. \[Eta] -> -\[Eta] (\[Eta]^2 -g )]
+\end{verbatim}
+% }
 
 \subsection{Compose}
-Composing an element of $(p',q')\in\Hom_{\GPA(\Gamma)}(m\to n)$ with an element of $(p,q)\in\Hom_{\GPA(\Gamma)}(l\to m)$ is defined on basis elements by 
+Composing an element of $\Hom_{\GPA(\Gamma)}(m\to n)$ with an element of $\Hom_{\GPA(\Gamma)}(l\to m)$ 
+is defined on basis elements by 
 \[
 (p',q')\circ(p,q) = \delta_{q',p}\cdot(p',q)
 \]
-This basis-vector-to-basis-vector composition is reflected in the function \verb|LilCompose|. Composing a pair of linear combinations (i.e. lists) of basis vectors is taken care of by \verb|BigCompose|. The function \verb|Compose| handles arbitrary compositions of the form $f_1\circ \cdots\circ f_r$.
+This basis-vector-to-basis-vector composition is reflected in the function \verb|LilCompose|. 
+Composing a pair of linear combinations (i.e. lists) of basis vectors is taken care of by \verb|BigCompose|. 
+The function \verb|Comp| handles arbitrary compositions of the form $f_1\circ \cdots\circ f_r$.
+The mechanism of \verb|LilCompose| is fairly straightforward and should present little trouble to understanding.
+
+At the moment \verb|BigCompose|, and therefore \verb|Comp|, use the naive $\mathcal{O}(n^2)$ algorithm 
+for computing compositions of lists.
+There is hope that a linear-time algorithm utilizing hash maps exists.
 
 
 \subsection{Tensor}
+Tensoring is a similar story to composition.
+The monoidal product on the GPA is given in terms of the defining basis by 
+\[
+    (p,q)\otimes(p',q') = \delta_{s(p'),t(p)} (pp',qq').
+\]
+The function \verb|LilTens| performs this operation on pairs of basis vector associations: 
+$(p,q)\otimes(p',q')$.
+The function \verb|BigTens| performs this operation on pairs of lists of basis vector associations: 
+$f\otimes g$.
+The function \verb|Tens| performs this operation on an arbitrary list of lists of basis vector associations: 
+$f_1\otimes \cdots\otimes f_r$.
+
+As with composition, we currently use the naive quadratic time algorithm, 
+with a hope of optimizing to a linear time algorithm.
+
 
 
 \subsection{Cup, Cap, and Stick}
