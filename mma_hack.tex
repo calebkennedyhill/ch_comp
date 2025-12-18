@@ -161,3 +161,39 @@ computational resources due to their symbolic nature.
 
 
 
+
+
+
+
+\subsection{Algorithms and Data Structures}
+
+% Associations are symbolically-indexed lists.
+
+% Use linear algorithms where possible.
+
+The computations required to describe the quantum subgroups of type $G_2$ are 
+good test cases for a computational framework.
+The sizes of the hom-spaces grow fast enough that the largest computations like finding (decPentagon) relations
+becomes intractable with algorithms that are too naive.
+For instance, building from the GPA embedding of the trivalent generator $\skein{/skein_figs/trivalent}{0.075}$ 
+to the embedding of the pentagon $\skein{/skein_figs/dec_pent_LHS}{0.07}$ requires composing 
+an element of $\Hom_{\GPA(\Gamma)}(2\to4)$, 
+an element of $\Hom_{\GPA(\Gamma)}(4\to2)$, 
+an element of $\Hom_{\GPA(\Gamma)}(2\to4)$, 
+an element of $\Hom_{\GPA(\Gamma)}(4\to3)$, 
+and an element of $\Hom_{\GPA(\Gamma)}(4\to3)$.
+At level 4, these hom-spaces are of dimensions 7,776, 7,776, 7,776 and 34,528, respectively.
+Doing this with the naive $\OO(N^2)$ algorithm would require at least 16,234,547,147,440,128 operations, 
+which is obviously infeasible.
+Instead, one might hope to find a way to compose morphisms with a lower time complexity.
+Mathematica's Association data structure offers some hope of 
+at least drastically lowering the complexity coefficient.
+
+Regardless of implementation, one trick one should employ is precomputing values that arise frequently.
+For example in the example above with (decPentagon), we can spot $\skein{/skein_figs/dec_tet_2}{0.07}$
+in the lower part of the figure.
+Computing this morphism earlier obviously saves us the time of computing it 
+as part of $\skein{/skein_figs/dec_pent_LHS}{0.07}$ and decreases the number of operations 
+needed by $\frac{207}{7776^2}$.
+
+% But why compare (p,q) to (p',q') if q!=p'? Linear scan first

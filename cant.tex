@@ -141,7 +141,7 @@ and reduce any expressions we encounter modulo the minimal polynomials for the g
 {\it in the variables $\alpha$, $\beta_1$, $\beta_2$, and $\beta_3$}.
 Now, in order to express summands of the defining relations of $\DD_4$ such as 
 \[
-    \skein{/skein_figs/trigon_singly}{0.1},
+    \skein{/skein_figs/trigon_LHS}{0.1},
 \]
 we need access to rigidity maps 
 \[
@@ -158,8 +158,8 @@ We may arrive at this point by solving a large linear system (i.e., the half-bra
 by applying optimization to some nonlinear relations, or some other means.
 We can use this approximation to solve, for example, the linear system
 \[
-    \skein{/skein_figs/trigon_singly}{0.1} 
-    = t_1 \skein{/skein_figs/trivalent}{0.15} + t_2 \skein{/skein_figs/rightUp}{0.1}
+    \skein{/skein_figs/trigon_LHS}{0.1} 
+    = t_1 \skein{/skein_figs/trivalent}{0.15} + t_2 \skein{/skein_figs/triv_rightUp}{0.1}
 \]
 to find guesses for the values of $t_1$ and $t_2$.
 Once we have our {\it guesses} for $t_1$ and $t_2$, we may turn this into an {\it assumption} by 
@@ -171,12 +171,27 @@ coordinates of $F\left( \skein{/skein_figs/Pg}{0.075} \right)$.
 
 
 \subsection{CANT for equation validation}
-Suppose we have an equation in the two subcategory generators: trivalent and projection (and cups, caps, and sticks).
+Suppose we have an equation in the two generators: trivalent and projection (and cups, caps, and sticks).
 With symbolic GPA embeddings of the generators as above, this amounts to a linear combination of vectors,
 where the vectors have symbolic polynomial entries and are scaled by symbolic polynomials.
 In order to prove these equations are true, we can either specialize the symbols to their numeric values, 
 or show that the equations hold purely symbolically.
-Usually, we take some middle ground.
-Note that the only non-real generator of $K$ is $q$, whose part is played by $\eta$.
-Thus we individually inspect the coefficients of $\eta$ and prove they are equal when specialized.
-This is sufficient to prove a symbolic equation holds.
+It turns out the latter approach is superior in the cases we are interested in.
+
+We actually require very few relationships between the symbolic variables to hold 
+in order to show that the cyclic extension equations are true.
+The following relations, in addition to the defining relations from the minimal 
+polynomials, turned out to be sufficient to verify all equations at level 4:
+\begin{align*}
+\beta_3 & = \beta_1\lambda(\frac{3}{2} -\frac{3}{2}g -\frac{1}{2}g^2 \frac{1}{2}g^3) \\
+\beta_1 & = -\alpha^3(\frac{1}{2} +\frac{1}{2}g) -\alpha(1 +\frac{3}{2}g -g^2 -\frac{1}{2}g^3) \\
+\beta_3\lambda & == \alpha((-5 -9g +3g^2 +3g^3) +\alpha^2(-2 -5g +g^3)).
+\end{align*}
+
+Sufficiency here means that the following process terminates.
+Suppose we have an expression $\EE$ which we would like to show is equal to 0.
+Impose the known relations on $\EE$: those given by the minimal polynomials in addition 
+to those listed above.
+Expand the result $\EE_1$ and combine all like terms.
+Once again impose the relations on $\EE_1$ to obtain $\EE_2$; combine like terms again.
+In the cases we worked with, $\EE_2$ was identically 0 after combining like terms.
